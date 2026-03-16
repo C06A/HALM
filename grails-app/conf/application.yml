@@ -19,10 +19,15 @@ spring:
             check-template-location: false
 
 # Spring Actuator Endpoints are Disabled by Default
-endpoints:
-    enabled: false
-    jmx:
-        enabled: true
+management:
+    endpoints:
+        enabled-by-default: false
+        jmx:
+            exposure:
+                include: "health"
+    endpoint:
+        health:
+            enabled: true
 
 ---
 grails:
@@ -76,6 +81,3 @@ grails:
                 scriptlets: html
                 taglib: none
                 staticparts: none
-endpoints:
-    jmx:
-        unique-names: true

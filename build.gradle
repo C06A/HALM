@@ -4,9 +4,8 @@ buildscript {
         maven { url "https://repo.grails.org/grails/core" }
     }
     dependencies {
-        classpath "org.grails:grails-gradle-plugin:$grailsGradlePluginVersion"
+        classpath "org.apache.grails:grails-gradle-plugins:$grailsGradlePluginVersion"
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.31.0"
-        classpath "org.grails.plugins:views-gradle:2.3.2"
     }
 }
 
@@ -15,9 +14,9 @@ group 'com.exa.exacloud'
 
 apply plugin: 'eclipse'
 apply plugin: 'idea'
-apply plugin: 'org.grails.grails-plugin'
+apply plugin: 'org.apache.grails.gradle.grails-plugin'
 apply plugin: 'maven-publish'
-apply plugin: 'org.grails.plugins.views-json'
+apply plugin: 'org.apache.grails.gradle.grails-gson'
 apply plugin: 'com.jfrog.artifactory'
 
 repositories {
@@ -35,18 +34,15 @@ configurations {
 
 dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
-    compileOnly "io.micronaut:micronaut-inject-groovy"
-    console "org.grails:grails-console"
+    console "org.apache.grails:grails-console"
     implementation "org.springframework.boot:spring-boot-starter-logging"
     implementation "org.springframework.boot:spring-boot-autoconfigure"
-    implementation "org.grails:grails-core"
-    implementation "org.grails:grails-web-boot"
-    implementation "org.grails.plugins:views-json"
-    implementation "org.grails.plugins:views-json-templates"
-    profile "org.grails.profiles:web-plugin"
-    testImplementation "io.micronaut:micronaut-inject-groovy"
+    implementation "org.apache.grails:grails-core"
+    implementation "org.apache.grails:grails-web-boot"
+    implementation "org.apache.grails:grails-views-gson"
+    profile "org.apache.grails.profiles:web-plugin"
     testImplementation "org.mockito:mockito-core"
-    testImplementation "org.grails:grails-web-testing-support"
+    testImplementation "org.apache.grails:grails-testing-support-web"
 }
 
 if (!ext.has('ignoreTestFailures')) {
@@ -67,7 +63,6 @@ bootRun {
     ignoreExitValue true
     jvmArgs(
         '-Dspring.output.ansi.enabled=always',
-        '-noverify',
         '-XX:TieredStopAtLevel=1',
         '-Xmx1024m')
     sourceResources sourceSets.main
@@ -93,10 +88,6 @@ tasks.named("bootJar") {
 
 tasks.named("jar") {
     archiveClassifier = ''
-}
-
-tasks.named("bootJarMainClassName") {
-    dependsOn compileGsonViews
 }
 
 java {

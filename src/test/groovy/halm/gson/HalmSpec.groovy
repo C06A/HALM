@@ -119,7 +119,7 @@ class HalmSpec extends Specification {
             link 'simpleRelative', 'simple/relative'
             link 'simpleAbsolute', '/simple/absolute'
             link('simpleComplete', 'simple/complete', 'param=simple'
-                    , Locale.getInstance('ru', 'RU', '')
+                    , new Locale('ru', 'RU', '')
                     , 'text/plane', 'simple title', 'deprecated/url', '''link's name''', 'profile/uri'
             )
             link {
@@ -210,7 +210,7 @@ class HalmSpec extends Specification {
             template 'simpleRelative', 'simple/relative'
             template 'simpleAbsolute', '/simple/absolute'
             template('simpleComplete', 'simple/complete', 'param=simple'
-                    , Locale.getInstance('ru', 'RU', '')
+                    , new Locale('ru', 'RU', '')
                     , 'text/plane', 'simple title', 'deprecated/url', '''link's name''', 'profile/uri'
             )
             template {
@@ -373,7 +373,7 @@ class HalmSpec extends Specification {
                     link 'simpleRelative', 'simple/relative'
                     link 'simpleAbsolute', '/simple/absolute'
                     link('simpleComplete', 'simple/complete', 'param=simple'
-                            , Locale.getInstance('ru', 'RU', '')
+                            , new Locale('ru', 'RU', '')
                             , 'text/plane', 'simple title', 'deprecated/url', '''link's name''', 'profile/uri'
                     )
                     link {
@@ -479,7 +479,7 @@ class HalmSpec extends Specification {
                     template 'simpleRelative', 'simple/relative'
                     template 'simpleAbsolute', '/simple/absolute'
                     template('simpleComplete', 'simple/complete', 'param=simple'
-                            , Locale.getInstance('ru', 'RU', '')
+                            , new Locale('ru', 'RU', '')
                             , 'text/plane', 'simple title', 'deprecated/url', '''link's name''', 'profile/uri'
                     )
                     template {

@@ -1,6 +1,5 @@
 package com.exa.halm
 
-import com.sun.org.apache.xpath.internal.operations.Bool
 import groovy.transform.CompileDynamic
 
 import java.util.regex.Pattern
