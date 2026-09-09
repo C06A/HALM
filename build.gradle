@@ -5,19 +5,20 @@ buildscript {
     }
     dependencies {
         classpath "org.apache.grails:grails-gradle-plugins:$grailsGradlePluginVersion"
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.31.0"
+        classpath "com.vanniktech:gradle-maven-publish-plugin:$vanniktechPublishVersion"
     }
 }
 
 version = "${productVersion}${(isRelease.toBoolean()) ? '' : '-SNAPSHOT'}"
-group 'com.exa.exacloud'
+// Was com.exa.exacloud through v1.1.5 (Artifactory). Maven Central only accepts the
+// verified com.helpchoice namespace; the artifactId stays HALM for continuity.
+group 'com.helpchoice.grails'
 
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'org.apache.grails.gradle.grails-plugin'
-apply plugin: 'maven-publish'
 apply plugin: 'org.apache.grails.gradle.grails-gson'
-apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'com.vanniktech.maven.publish'
 
 repositories {
     mavenLocal()
@@ -90,40 +91,81 @@ tasks.named("jar") {
     archiveClassifier = ''
 }
 
-java {
-    withSourcesJar()
-}
+// ── Maven Central publishing ──────────────────────────────────────────────────
+// Credentials and the GPG key come from ~/.gradle/gradle.properties:
+//   mavenCentralUsername / mavenCentralPassword — Central Portal user token
+//   signingInMemoryKey / signingInMemoryKeyPassword — armoured secret key
+// Release:   set isRelease=true in gradle.properties, then ./gradlew publishToMavenCentral
+// Snapshot:  isRelease=false publishes -SNAPSHOT to the Central snapshot repository.
+//
+// The plugin applies maven-publish and signing itself and builds the sources and
+// javadoc jars Central requires — so no `java { withSourcesJar() }` here.
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-            versionMapping {
-                usage('java-api') {
-                    fromResolutionOf('runtimeClasspath')
-                }
-                usage('java-runtime') {
-                    fromResolutionResult()
-                }
+    coordinates(project.group.toString(), 'HALM', project.version.toString())
+
+    pom {
+        name.set('HAL Maker 4 GSON view')
+        description.set('Grails plugin providing a DSL that builds valid HAL+JSON documents from ' +
+            'GSON views. Replaces the built-in GSON HAL extension, works with arbitrary objects ' +
+            'rather than only domain classes, and keeps view code debuggable by allowing it to be ' +
+            'run verbatim inside a controller.')
+        url.set('https://github.com/C06A/HALM')
+        inceptionYear.set('2017')
+
+        licenses {
+            license {
+                name.set('Apache-2.0')
+                url.set('https://www.apache.org/licenses/LICENSE-2.0')
             }
+        }
+        developers {
+            developer {
+                id.set('C06A')
+                name.set('Constantine Bialik')
+                email.set('grails@helpchoice.com')
+            }
+        }
+        scm {
+            url.set('https://github.com/C06A/HALM')
+            connection.set('scm:git:https://github.com/C06A/HALM.git')
+            developerConnection.set('scm:git:ssh://git@github.com/C06A/HALM.git')
+        }
+        issueManagement {
+            system.set('GitHub')
+            url.set('https://github.com/C06A/HALM/issues')
         }
     }
 }
 
-artifactory {
-    contextUrl = "${artifactoryUrl}"
+// All sources are Groovy, so the `javadoc` task is NO-SOURCE and the plugin's javadoc jar would
+// ship empty. Central accepts that, but v1.0.1 published real docs — fill the jar from groovydoc.
+// The plugin registers plainJavadocJar during its own afterEvaluate, so match it lazily. Match by
+// name, not withType(Jar): the plugin's JavadocJar extends org.gradle.jvm.tasks.Jar, while the
+// bare `Jar` in a build script resolves to its subclass org.gradle.api.tasks.bundling.Jar.
+tasks.matching { it.name == 'plainJavadocJar' }.configureEach {
+    from tasks.named('groovydoc')
+}
 
-    publish {
-        defaults {
-            publications('mavenJava')
-            publishArtifacts = true
-            publishPom = true
+// groovydoc's classpath is sourceSets.main.output, which compileGsonViews also writes into.
+tasks.named('groovydoc') {
+    dependsOn tasks.named('compileGsonViews')
+}
 
-        }
-        repository {
-            repoKey = "${isRelease.toBoolean() ? 'plugins-release-local' : 'plugins-snapshot-local'}"
-            username = usernameText
-            password = passwordText
+// Grails supplies dependency versions through its BOM, so the declarations above carry none.
+// Without this mapping the generated POM would ship those dependencies with empty <version>
+// elements. Kept from the previous Artifactory setup.
+publishing {
+    publications.withType(MavenPublication).configureEach {
+        versionMapping {
+            usage('java-api') {
+                fromResolutionOf('runtimeClasspath')
+            }
+            usage('java-runtime') {
+                fromResolutionResult()
+            }
         }
     }
 }
